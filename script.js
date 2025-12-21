@@ -153,11 +153,14 @@ async function checkout() {
         closeOnClickOutside: false
       });
 
-      const res = await fetch("http://localhost:3000/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, email, cart, total })
-      });
+      const res = await fetch(
+  "https://tiket-konser.vercel.app/api/checkout",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nama, email, cart, total })
+  }
+);
 
       const result = await res.json();
       if (!res.ok || !result.success) {
