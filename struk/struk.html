@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Struk Pembelian - LATOS.ID</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../style.css" />
+
+  <!-- SweetAlert -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+  <!-- html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- PRINT CLEAN -->
+  <style>
+    @media print {
+      header,
+      button {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+      }
+      .card {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="topbar">
+  <h2>LATOS.ID</h2>
+</header>
+
+<!-- CONTAINER -->
+<div class="container">
+
+  <!-- STRUK AREA -->
+  <div class="card" id="strukArea">
+
+    <h3 style="text-align:center;margin-bottom:12px;">
+      Struk Pembelian
+    </h3>
+
+    <p><strong>Nama:</strong> <span id="nama"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+
+    <hr style="border:1px dashed #bae6fd;margin:12px 0;">
+
+    <p><strong>Detail Tiket:</strong></p>
+    <ul id="list" class="cart-list"></ul>
+
+    <div class="cart-total" style="margin-top:10px;">
+      Total: Rp <span id="total"></span>
+    </div>
+
+    <!-- QRIS -->
+    <div class="qris-section">
+      <h4 style="margin-bottom:8px;">💳 QRIS Pembayaran</h4>
+      <img src="./qris.png" alt="QRIS Pembayaran">
+    </div>
+
+  </div>
+
+  <!-- ACTION BUTTON -->
+  <button class="primary" onclick="window.print()">
+    Cetak Struk
+  </button>
+
+  <button class="primary" id="downloadBtn" onclick="downloadPDF()">
+    Download Struk (PDF)
+  </button>
+
+</div>
+
+<script>
+/* ===============================
+   LOAD DATA STRUK
+================================ */
+const data = JSON.parse(localStorage.getItem('dataStruk'));
+
+if (!data) {
+  swal("Data tidak ditemukan", "Silakan checkout ulang", "error")
+    .then(() => window.location.href = '../index.html');
+}
+
+/* RENDER DATA */
+document.getElementById('nama').textContent = data.nama;
+document.getElementById('email').textContent = data.email;
+document.getElementById('total').textContent =
+  data.total.toLocaleString('id-ID');
+
+const list = document.getElementById('list');
+data.cart.forEach(item => {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <span>${item.nama}</span>
+    <strong>x${item.qty}</strong>
+  `;
+  list.appendChild(li);
+});
+
+/* SWEETALERT INFO (HALUS) */
+setTimeout(() => {
+  swal("Berhasil", "Struk siap dibayar dan diunduh", "success");
+}, 400);
+
+/* ===============================
+   DOWNLOAD PDF (1x SAJA)
+================================ */
+function downloadPDF() {
+  const key = 'pdfDownloaded_' + data.email;
+
+  if (localStorage.getItem(key) === 'true') {
+    swal("Gagal", "PDF hanya bisa diunduh 1 kali", "warning");
+    return;
+  }
+
+  const btn = document.getElementById('downloadBtn');
+  btn.innerText = "Generating PDF...";
+  btn.disabled = true;
+
+  const element = document.getElementById('strukArea');
+
+  // paksa style ramah PDF
+  element.style.boxShadow = 'none';
+  element.style.borderRadius = '0';
+  element.style.width = '100%';
+
+  const opt = {
+    margin: 10,
+    filename: 'Struk-LATOSS.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 2,
+      scrollY: 0,
+      useCORS: true
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    localStorage.setItem(key, 'true');
+    btn.innerText = "PDF Sudah Diunduh";
+  });
+}
+</script>
+
+</body>
+</html>
